@@ -46,7 +46,7 @@
                     @endif --}}
 
 
-                    <form action="{{ route('post#create') }}" method="POST">
+                    <form action="{{ route('post#create') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="text-group mb-3">
                             <label for="">Post Title</label>
@@ -72,6 +72,18 @@
                             @enderror"
                                 cols="30" rows="7 " placeholder="Enter Post Description ...">{{ old('postDescription') }}</textarea>
                             @error('postDescription')
+                                <div class="invalid-feedback">
+                                    {{ $message }}
+                                </div>
+                            @enderror
+                        </div>
+                        <div class="text-group mb-3">
+                            <label for="">Post Image</label>
+                            <input type="file" name="postImage"
+                                class="form-control @error('postImage')
+                                is-invalid
+                            @enderror">
+                            @error('postImage')
                                 <div class="invalid-feedback">
                                     {{ $message }}
                                 </div>
@@ -161,7 +173,8 @@
                             </div>
                             <div class="text-end">
                                 <a href="{{ route('post#delete', $item->id) }}">
-                                    <button class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i> ဖျက်ရန်</button>
+                                    <button class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i>
+                                        ဖျက်ရန်</button>
                                 </a>
                                 {{-- <form action="{{ route('post#delete', $item['id']) }}" method="POST">
                                     @csrf

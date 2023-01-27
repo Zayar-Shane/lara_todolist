@@ -8,7 +8,7 @@
                     <a href="{{ route('post#updatePage', $post['id']) }}" class="text-decoration-none text-dark"><i
                             class="fa-solid fa-arrow-left"></i> back</a>
                 </div>
-                <form action="{{ route('post#update') }}" method="post">
+                <form action="{{ route('post#update') }}" method="post" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="postID" value="{{ $post['id'] }}">
                     <div class="mb-3">
@@ -19,6 +19,23 @@
                         @enderror"
                             placeholder="Enter Your Tasks..." value="{{ old('postTitle', $post['title']) }}">
                         @error('postTitle')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                        @enderror
+                    </div>
+                    <div class="my-3">
+                        <label for="">Image</label>
+                        @if ($post->image == null)
+                            <img src="{{ asset('404_image.png') }}" class="img-thumbnail">
+                        @else
+                            <img src="{{ asset('storage/' . $post->image) }}" class="img-thumbnail">
+                        @endif
+                        <input type="file" name="postImage"
+                            class="form-control @error('postImage')
+                            is-invalid
+                        @enderror">
+                        @error('postImage')
                             <div class="invalid-feedback">
                                 {{ $message }}
                             </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class PostController extends Controller
@@ -26,6 +27,11 @@ class PostController extends Controller
     {
         $this->checkValidation($request);
         $data = $this->getPostData($request);
+        if ($request->hasFile('postImage')) {
+            $file_name = uniqid() . '_' . $request->file('postImage')->getClientOriginalName();
+            $request->file('postImage')->storeAs('public', $file_name);
+            $data['image'] = $file_name;
+        }
         Post::create($data);
         return redirect()->route('post#createPage')->with(["insertSuccess" => "Post ဖန်တီးခြင်း အောင်မြင်ပါသည်။"]);
 
@@ -37,6 +43,11 @@ class PostController extends Controller
         // first way
         // Post::where('id', $id)->delete();
         // return back();
+        $oldImg = Post::select('image')->where('id', $id)->first();
+        $oldImgName = $oldImg->image;
+        if ($oldImg != null) {
+            Storage::delete('public/' . $oldImgName);
+        }
         Post::find($id)->delete();
         return redirect()->route('post#createPage')->with(["deleteSuccess" => "Data အောင်မြင်စွာ ဖျက်ပြီးပါပြီ။"]);
     }
@@ -51,7 +62,7 @@ class PostController extends Controller
     // edit details of user data
     public function editPage($id)
     {
-        $post = Post::where('id', $id)->first()->toArray();
+        $post = Post::where('id', $id)->first();
         return view('edit', compact('post'));
     }
 
@@ -61,6 +72,21 @@ class PostController extends Controller
         $this->checkValidation($request);
         $data = $this->getPostData($request);
         $id = $request->postID;
+        if ($request->hasFile('postImage')) {
+
+            // delete
+            $oldImg = Post::select('image')->where('id', $id)->first();
+            $oldImgName = $oldImg->image;
+
+            if ($oldImgName != null) {
+                Storage::delete('public/' . $oldImgName);
+            }
+
+            $file_name = uniqid() . '_' . $request->file('postImage')->getClientOriginalName();
+            $request->file('postImage')->storeAs('public', $file_name);
+            $data['image'] = $file_name;
+        }
+
         Post::where('id', $id)->update($data);
         return redirect()->route('post#createPage')->with(["updateSuccess" => "Update လုပ်ခြင်း အောင်မြင်ပါသည်။"]);
     }
@@ -86,6 +112,7 @@ class PostController extends Controller
         $validate_rule = [
             'postTitle' => 'required|min:5|unique:posts,title,' . $request->postID,
             'postDescription' => 'required|min:5',
+            'postImage' => 'mimes:jpg,jpeg,png',
             'postFee' => 'required|min:4',
             'postAddress' => 'required',
             'postRating' => 'required|max:1',
@@ -101,6 +128,7 @@ class PostController extends Controller
             'postAddress' => "Address ဖြည့်ရန် လိုအပ်သည်။",
             'postRating' => "Rating ပေးရန်် လိုအပ်သည်။",
             'postRating.max' => "0မှ 5အတွင်း တန်ဖိုးတစ်ခုသာ ပေးရမည်။",
+            'postImage.mimes' => "Image Type သည် jpg, jpeg နှင့် png သာလျှင်ဖြစ်ရမည်။",
         ];
 
         Validator::make($request->all(), $validate_rule, $validationMess)->validate();
